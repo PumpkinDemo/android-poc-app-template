@@ -1,0 +1,167 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'ave.mujica.poc'
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        applicationId "ave.mujica.poc"
+        minSdk 30
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+}
+
+dependencies {
+    // implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
+
+
+apply plugin: 'eclipse'
+
+afterEvaluate {
+
+    // ========== 获取 SDK 路径 ==========
+    // 方法1: 从 local.properties 读取
+    // 方法2: 从环境变量 ANDROID_HOME 读取
+    def sdkDir = null
+    def localProps = new File(rootProject.projectDir, 'local.properties')
+    if (localProps.exists()) {
+        def props = new Properties()
+        props.load(localProps.newDataInputStream())
+        sdkDir = props.getProperty('sdk.dir')
+    }
+    if (sdkDir == null) {
+        sdkDir = System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+    }
+    if (sdkDir == null) {
+        throw new GradleException("Cannot find Android SDK. Set sdk.dir in local.properties or ANDROID_HOME env variable.")
+    }
+
+    // ========== 获取 compileSdk 版本 ==========
+    // AGP 8.x 用 android.compileSdk (返回 Integer)
+    // AGP 7.x 用 android.compileSdkVersion (返回 "android-34" 这样的字符串)
+    def compileSdk = null
+    try {
+        // AGP 8.x+
+        compileSdk = android.compileSdk
+        if (compileSdk instanceof Integer) {
+            compileSdk = "android-${compileSdk}"
+        }
+    } catch (Exception e) {
+        try {
+            // AGP 7.x fallback
+            compileSdk = android.compileSdkVersion
+        } catch (Exception e2) {
+            compileSdk = "android-34"
+            logger.warn("Could not detect compileSdk, falling back to ${compileSdk}")
+        }
+    }
+
+    // ========== 查找可用的 classpath configuration ==========
+    def classpathConfig = null
+    def configName = ['debugCompileClasspath', 'compileClasspath'].find {
+        try {
+            def c = configurations.getByName(it)
+            return c.canBeResolved
+        } catch (Exception e) {
+            return false
+        }
+    }
+    if (configName) {
+        classpathConfig = configurations.getByName(configName)
+    }
+
+    // ========== Eclipse 配置 ==========
+    eclipse {
+        classpath {
+            if (classpathConfig != null) {
+                plusConfigurations += [classpathConfig]
+            }
+
+            file {
+                whenMerged { cp ->
+                    // 1. 添加源码目录
+                    def src = new org.gradle.plugins.ide.eclipse.model.SourceFolder('src/main/java', 'bin/main')
+                    if (!cp.entries.any {
+                        it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path == 'src/main/java'
+                    }) {
+                        cp.entries.add(src)
+                    }
+
+                    // 2. 添加 android.jar
+                    def androidJarFile = new File("${sdkDir}/platforms/${compileSdk}/android.jar")
+                    if (androidJarFile.exists()) {
+                        def androidJar = new org.gradle.plugins.ide.eclipse.model.Library(
+                            fileReference(androidJarFile)
+                        )
+                        def srcPath = new File("${sdkDir}/sources/${compileSdk}")
+                        if (srcPath.exists()) {
+                            androidJar.sourcePath = fileReference(srcPath)
+                        }
+                        cp.entries.add(androidJar)
+                        logger.lifecycle("Added android.jar: ${androidJarFile}")
+                    } else {
+                        logger.warn("android.jar not found at: ${androidJarFile}")
+                    }
+
+                    // 3. 处理依赖（包括 AAR → 提取 classes.jar）
+                    if (classpathConfig != null) {
+                        classpathConfig.resolve().each { file ->
+                            if (file.name.endsWith('.aar')) {
+                                def extractDir = new File(buildDir, "extracted-aars/${file.name.replace('.aar', '')}")
+                                extractDir.mkdirs()
+                                copy {
+                                    from zipTree(file)
+                                    into extractDir
+                                    include 'classes.jar'
+                                    include 'libs/*.jar'
+                                }
+                                def classesJar = new File(extractDir, 'classes.jar')
+                                if (classesJar.exists()) {
+                                    cp.entries.add(new org.gradle.plugins.ide.eclipse.model.Library(
+                                        fileReference(classesJar)
+                                    ))
+                                }
+                                def libsDir = new File(extractDir, 'libs')
+                                if (libsDir.exists()) {
+                                    libsDir.eachFileMatch(~/.*\.jar/) { jar ->
+                                        cp.entries.add(new org.gradle.plugins.ide.eclipse.model.Library(
+                                            fileReference(jar)
+                                        ))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
