@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'ave.mujica.poc'
+    namespace = 'ave.mujica.poc'
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,24 +11,24 @@ android {
     }
 
     defaultConfig {
-        applicationId "ave.mujica.poc"
-        minSdk 30
-        targetSdk 36
-        versionCode 1
-        versionName "1.0"
+        applicationId = "ave.mujica.poc"
+        minSdk = 30
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 

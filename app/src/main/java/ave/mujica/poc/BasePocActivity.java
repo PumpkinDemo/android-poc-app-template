@@ -26,6 +26,7 @@ public abstract class BasePocActivity extends Activity {
     private static final int CONTENT_HORIZONTAL_PADDING_DP = 24;
     private static final int CONTENT_VERTICAL_PADDING_DP = 16;
     private static final int CONTENT_ITEM_SPACING_DP = 10;
+    private static final int CONTENT_SCROLL_HORIZONTAL_INSET_DP = 20;
     private static final int PAGE_BACKGROUND_COLOR = Color.parseColor("#F4F7FB");
 
     private static final int LOG_SHEET_PEEK_HEIGHT_DP = 164;
@@ -87,7 +88,8 @@ public abstract class BasePocActivity extends Activity {
         contentScrollView = new ScrollView(this);
         contentScrollView.setFillViewport(true);
         contentScrollView.setClipToPadding(false);
-        contentScrollView.setPadding(0, 0, 0, 0);
+        int contentScrollInset = ViewHelper.dpToPx(this, CONTENT_SCROLL_HORIZONTAL_INSET_DP);
+        contentScrollView.setPadding(contentScrollInset, 0, contentScrollInset, 0);
         CoordinatorLayout.LayoutParams contentParams = new CoordinatorLayout.LayoutParams(
                 CoordinatorLayout.LayoutParams.MATCH_PARENT,
                 CoordinatorLayout.LayoutParams.MATCH_PARENT
@@ -200,7 +202,7 @@ public abstract class BasePocActivity extends Activity {
                 ViewHelper.dpToPx(this, LOG_HEADER_HORIZONTAL_PADDING_DP),
                 ViewHelper.dpToPx(this, LOG_HEADER_VERTICAL_PADDING_DP)
         );
-        headerLayout.setBackgroundColor(LOG_HEADER_BACKGROUND_COLOR);
+        headerLayout.setBackground(makeHeaderBackground());
         headerLayout.addView(handleBar, handleParams);
         headerLayout.addView(headerRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -356,6 +358,19 @@ public abstract class BasePocActivity extends Activity {
                 0f, 0f
         });
         drawable.setStroke(ViewHelper.dpToPx(this, 1), LOG_SHEET_STROKE_COLOR);
+        return drawable;
+    }
+
+    private GradientDrawable makeHeaderBackground() {
+        GradientDrawable drawable = new GradientDrawable();
+        float radius = ViewHelper.dpToPx(this, LOG_SHEET_CORNER_RADIUS_DP);
+        drawable.setColor(LOG_HEADER_BACKGROUND_COLOR);
+        drawable.setCornerRadii(new float[]{
+                radius, radius,
+                radius, radius,
+                0f, 0f,
+                0f, 0f
+        });
         return drawable;
     }
 

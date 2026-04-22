@@ -53,7 +53,7 @@ public class ViewHelper {
         );
 
         TextView eyebrow = new TextView(context);
-        eyebrow.setText("OnePlus Framework");
+        eyebrow.setText("Android PoC Template");
         eyebrow.setTextSize(11f);
         eyebrow.setTextColor(ACCENT_COLOR);
         eyebrow.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
