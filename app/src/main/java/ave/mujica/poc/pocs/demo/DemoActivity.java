@@ -1,4 +1,4 @@
-package ave.mujica.poc.demo;
+package ave.mujica.poc.pocs.demo;
 
 import android.os.*;
 import ave.mujica.poc.*;
@@ -9,6 +9,8 @@ public class DemoActivity extends BasePocActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        addActionButton("run poc", v -> poc());
     }
 
     @Override

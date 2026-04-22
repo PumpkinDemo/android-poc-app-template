@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -21,7 +25,12 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".demo.DemoActivity" />
+        <activity android:name=".pocs.demo.DemoActivity" />
+        <activity android:name=".pocs.bglogdemo.BgLogDemoActivity" />
+        <service
+            android:name=".bglog.BackgroundLogService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

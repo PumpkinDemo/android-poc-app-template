@@ -4,7 +4,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class Utils {
-    public IBinder getService(String name) {
+    public static IBinder getServiceBinder(String name) {
         try {
             Class<?> smClass = Class.forName("android.os.ServiceManager");
             var getService = smClass.getDeclaredMethod("getService", String.class);
