@@ -20,7 +20,7 @@ public class BgLogDemoActivity extends BasePocActivity {
         super.onCreate(savedInstanceState);
 
         intervalInput = ViewHelper.createInputField(this, "bg interval ms", "1000", getLogTypeface());
-        rootLayout.addView(intervalInput, 1);
+        addInputField(intervalInput);
 
         // addActionButton("test", v -> poc());
         addActionButton("start background log", v -> requestBackgroundLog());
