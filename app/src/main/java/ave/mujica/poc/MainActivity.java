@@ -4,29 +4,49 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
 
 import ave.mujica.poc.pocs.demo.DemoActivity;
 import ave.mujica.poc.pocs.bglogdemo.BgLogDemoActivity;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
     private LinearLayout pocCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
 
         var root = ViewHelper.makeLinearLayout(this, "Main");
+        root.setPadding(
+                0,
+                root.getPaddingTop(),
+                0,
+                root.getPaddingBottom()
+        );
 
         ScrollView scrollView = new ScrollView(this);
-        int horizontalPadding = ViewHelper.dpToPx(this, 20);
         scrollView.setClipToPadding(false);
-        scrollView.setPadding(horizontalPadding, ViewHelper.dpToPx(this, 8), horizontalPadding, ViewHelper.dpToPx(this, 16));
+        scrollView.setPadding(0, ViewHelper.dpToPx(this, 8), 0, ViewHelper.dpToPx(this, 16));
         scrollView.setScrollBarStyle(ScrollView.SCROLLBARS_OUTSIDE_OVERLAY);
-        scrollView.addView(root);
+
+        FrameLayout contentFrame = new FrameLayout(this);
+        int horizontalPadding = ViewHelper.dpToPx(this, 20);
+        contentFrame.setPadding(horizontalPadding, 0, horizontalPadding, 0);
+        contentFrame.addView(root, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        ));
+        scrollView.addView(contentFrame, new ScrollView.LayoutParams(
+                ScrollView.LayoutParams.MATCH_PARENT,
+                ScrollView.LayoutParams.WRAP_CONTENT
+        ));
         setContentView(scrollView);
 
         LinearLayout.LayoutParams introParams = new LinearLayout.LayoutParams(

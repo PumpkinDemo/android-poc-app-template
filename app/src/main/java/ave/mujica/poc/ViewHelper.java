@@ -4,7 +4,9 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +22,8 @@ public class ViewHelper {
     private static final int SUBTITLE_COLOR = Color.parseColor("#5E7389");
     private static final int ACCENT_COLOR = Color.parseColor("#0F5F9A");
     private static final int ACCENT_DARK_COLOR = Color.parseColor("#0A4C7B");
+    private static final int ACCENT_PRESSED_COLOR = Color.parseColor("#073B61");
+    private static final int ACCENT_FOCUSED_COLOR = Color.parseColor("#136EAE");
     private static final int INPUT_BACKGROUND_COLOR = Color.parseColor("#FBFDFF");
     private static final int INPUT_TEXT_COLOR = Color.parseColor("#183046");
     private static final int INPUT_HINT_COLOR = Color.parseColor("#73879D");
@@ -111,7 +115,35 @@ public class ViewHelper {
                 dpToPx(context, 14),
                 dpToPx(context, 10)
         );
-        button.setBackground(makeRoundedRect(ACCENT_COLOR, dpToPx(context, 16), dpToPx(context, 1), ACCENT_DARK_COLOR));
+        button.setBackground(makeButtonBackground(context));
+        button.setOnTouchListener((view, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    view.animate().cancel();
+                    view.animate()
+                            .alpha(0.84f)
+                            .scaleX(0.985f)
+                            .scaleY(0.985f)
+                            .translationY(dpToPx(context, 1))
+                            .setDuration(55L)
+                            .start();
+                    break;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    view.animate().cancel();
+                    view.animate()
+                            .alpha(1f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .translationY(0f)
+                            .setDuration(120L)
+                            .start();
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        });
         button.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -186,6 +218,25 @@ public class ViewHelper {
 
     public static GradientDrawable makeSurfaceBackground(Context context, int radiusDp) {
         return makeRoundedRect(SURFACE_COLOR, dpToPx(context, radiusDp), dpToPx(context, 1), SURFACE_STROKE_COLOR);
+    }
+
+    private static StateListDrawable makeButtonBackground(Context context) {
+        int radius = dpToPx(context, 16);
+        int stroke = dpToPx(context, 1);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(
+                new int[]{android.R.attr.state_pressed},
+                makeRoundedRect(ACCENT_PRESSED_COLOR, radius, stroke, ACCENT_PRESSED_COLOR)
+        );
+        states.addState(
+                new int[]{android.R.attr.state_focused},
+                makeRoundedRect(ACCENT_FOCUSED_COLOR, radius, stroke, ACCENT_DARK_COLOR)
+        );
+        states.addState(
+                new int[]{},
+                makeRoundedRect(ACCENT_COLOR, radius, stroke, ACCENT_DARK_COLOR)
+        );
+        return states;
     }
 
     private static String defaultSubtitleForTitle(String title) {

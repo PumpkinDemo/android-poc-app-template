@@ -1,6 +1,5 @@
 package ave.mujica.poc;
 
-import android.app.Activity;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -12,21 +11,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
 
-public abstract class BasePocActivity extends Activity {
+public abstract class BasePocActivity extends AppCompatActivity {
 
     private static final String LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf";
 
     private static final int CONTENT_HORIZONTAL_PADDING_DP = 24;
     private static final int CONTENT_VERTICAL_PADDING_DP = 16;
     private static final int CONTENT_ITEM_SPACING_DP = 10;
-    private static final int CONTENT_SCROLL_HORIZONTAL_INSET_DP = 20;
     private static final int PAGE_BACKGROUND_COLOR = Color.parseColor("#F4F7FB");
 
     private static final int LOG_SHEET_PEEK_HEIGHT_DP = 164;
@@ -75,6 +76,7 @@ public abstract class BasePocActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
 
         logHeaderTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
 
@@ -88,8 +90,8 @@ public abstract class BasePocActivity extends Activity {
         contentScrollView = new ScrollView(this);
         contentScrollView.setFillViewport(true);
         contentScrollView.setClipToPadding(false);
-        int contentScrollInset = ViewHelper.dpToPx(this, CONTENT_SCROLL_HORIZONTAL_INSET_DP);
-        contentScrollView.setPadding(contentScrollInset, 0, contentScrollInset, 0);
+        contentScrollView.setPadding(0, 0, 0, 0);
+        contentScrollView.setScrollBarStyle(ScrollView.SCROLLBARS_OUTSIDE_OVERLAY);
         CoordinatorLayout.LayoutParams contentParams = new CoordinatorLayout.LayoutParams(
                 CoordinatorLayout.LayoutParams.MATCH_PARENT,
                 CoordinatorLayout.LayoutParams.MATCH_PARENT
@@ -100,14 +102,24 @@ public abstract class BasePocActivity extends Activity {
         this.rootLayout = root;
         root.setGravity(Gravity.NO_GRAVITY);
         root.setPadding(
-                ViewHelper.dpToPx(this, CONTENT_HORIZONTAL_PADDING_DP),
+                0,
                 ViewHelper.dpToPx(this, CONTENT_VERTICAL_PADDING_DP),
-                ViewHelper.dpToPx(this, CONTENT_HORIZONTAL_PADDING_DP),
+                0,
                 ViewHelper.dpToPx(this, CONTENT_VERTICAL_PADDING_DP)
         );
         root.setClipToPadding(false);
 
-        contentScrollView.addView(root);
+        FrameLayout contentFrame = new FrameLayout(this);
+        int horizontalPadding = ViewHelper.dpToPx(this, CONTENT_HORIZONTAL_PADDING_DP);
+        contentFrame.setPadding(horizontalPadding, 0, horizontalPadding, 0);
+        contentFrame.addView(root, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        ));
+        contentScrollView.addView(contentFrame, new ScrollView.LayoutParams(
+                ScrollView.LayoutParams.MATCH_PARENT,
+                ScrollView.LayoutParams.WRAP_CONTENT
+        ));
         coordinatorLayout.addView(contentScrollView);
 
         logView = new TextView(this);
@@ -475,9 +487,9 @@ public abstract class BasePocActivity extends Activity {
             return;
         }
         contentScrollView.setPadding(
-                contentScrollView.getPaddingLeft(),
+                0,
                 contentScrollView.getPaddingTop(),
-                contentScrollView.getPaddingRight(),
+                0,
                 bottomInset
         );
     }
