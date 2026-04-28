@@ -21,6 +21,7 @@ public class DemoActivity extends BasePocActivity {
         addActionButton("run poc", v -> poc());
         addActionButton("current time", v -> logCurrentTime());
         addActionButton("read asset file", v -> readAssetFile());
+        addActionButton("notify", v -> sendNotification());
     }
 
     @Override
@@ -49,5 +50,9 @@ public class DemoActivity extends BasePocActivity {
         } else {
             log(TAG, "Failed to read asset file.");
         }
+    }
+
+    public void sendNotification() {
+        NotificationHelper.checkAndSend(this, "Hello", "Current time: " + Utils.getCurrentTime());
     }
 }
