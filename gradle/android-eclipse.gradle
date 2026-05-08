@@ -56,6 +56,7 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
         def sdkDir = resolveAndroidSdkDir(targetProject)
         def compileSdk = resolveCompileSdkName(targetProject)
         def classpathConfig = resolveClasspathConfiguration(targetProject)
+        def generatedBuildConfigDir = new File(targetProject.buildDir, 'generated/source/buildConfig/debug')
         def ownRClassJar = new File(targetProject.buildDir, 'intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar')
         def externalArtifacts = classpathConfig == null ? [] : classpathConfig.incoming.artifactView {
             lenient = true
@@ -73,6 +74,10 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
                 if (generateRFileTask != null) {
                     task.dependsOn(generateRFileTask)
                 }
+                def generateBuildConfigTask = targetProject.tasks.findByName('generateDebugBuildConfig')
+                if (generateBuildConfigTask != null) {
+                    task.dependsOn(generateBuildConfigTask)
+                }
             }
         }
 
@@ -85,6 +90,14 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
                             it instanceof SourceFolder && it.path == 'src/main/java'
                         }) {
                             cp.entries.add(src)
+                        }
+
+                        def generatedBuildConfigPath = 'build/generated/source/buildConfig/debug'
+                        if (generatedBuildConfigDir.exists() && !cp.entries.any {
+                            it instanceof SourceFolder && it.path == generatedBuildConfigPath
+                        }) {
+                            cp.entries.add(new SourceFolder(generatedBuildConfigPath, 'bin/main'))
+                            targetProject.logger.lifecycle("Added generated BuildConfig source: ${generatedBuildConfigDir}")
                         }
 
                         projectDependencies.each { projectPath ->
