@@ -4,6 +4,7 @@
 .gradle/
 .vscode/
 .idea/
+.kotlin/
 
 /build/
 
