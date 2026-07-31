@@ -57,7 +57,9 @@ object BinderUtils {
         val reply = Parcel.obtain()
         try {
             data.writeInterfaceToken(descriptor)
-            writer?.write(data)
+            if (writer != null) {
+                writer.write(data)
+            }
             val ok = binder.transact(code, data, reply, 0)
             if (!ok) {
                 throw IllegalStateException("transact returned false for code $code")

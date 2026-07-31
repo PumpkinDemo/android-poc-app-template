@@ -36,9 +36,7 @@ class BgLogDemoActivity : BasePocActivity() {
         BackgroundLogTaskRegistry.register(DemoBgLogTask())
     }
 
-    override fun getTag(): String {
-        return TAG
-    }
+    override fun tag(): String = TAG
 
     private fun requestBackgroundLog() {
         if (!hasPostNotificationsPermission()) {

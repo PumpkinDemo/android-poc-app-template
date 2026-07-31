@@ -22,7 +22,7 @@ class DemoActivity : BasePocActivity() {
     
     private lateinit var input: EditText
     
-    override fun getTag() = TAG 
+    override fun tag() = TAG 
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

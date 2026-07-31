@@ -104,7 +104,7 @@ abstract class BasePocActivity : AppCompatActivity() {
 			)
 		}
 
-		val root = ViewUtils.makeLinearLayout(this, getTag())
+		val root = ViewUtils.makeLinearLayout(this, tag())
 		rootLayout = root
 		root.apply {
 			gravity = Gravity.NO_GRAVITY
@@ -324,7 +324,7 @@ abstract class BasePocActivity : AppCompatActivity() {
 		return try {
 			Typeface.createFromAsset(assets, LOG_FONT_ASSET)
 		} catch (e: RuntimeException) {
-			Log.w(getTag(), "Failed to load $LOG_FONT_ASSET, falling back to monospace", e)
+			Log.w(tag(), "Failed to load $LOG_FONT_ASSET, falling back to monospace", e)
 			Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
 		}
 	}
@@ -631,5 +631,5 @@ abstract class BasePocActivity : AppCompatActivity() {
 		val content: LinearLayout
 	)
 
-	abstract fun getTag(): String
+	abstract fun tag(): String
 }
