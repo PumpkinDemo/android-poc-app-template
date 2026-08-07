@@ -28,8 +28,6 @@ import ave.mujica.poc.utils.ViewUtils
 abstract class BasePocActivity : AppCompatActivity() {
 
 	companion object {
-		private const val LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf"
-
 		private const val CONTENT_HORIZONTAL_PADDING_DP = 24
 		private const val CONTENT_VERTICAL_PADDING_DP = 16
 		private const val CONTENT_ITEM_SPACING_DP = 10
@@ -55,8 +53,6 @@ abstract class BasePocActivity : AppCompatActivity() {
 		private const val LOG_CLEAR_TEXT_COLOR = 0xFF0F548C.toInt()
 		private const val LOG_CLEAR_BACKGROUND_COLOR = 0xFFE8F2FB.toInt()
 		private const val LOG_EMPTY_TEXT = "No logs captured yet."
-
-		private var logTypeface: Typeface? = null
 	}
 
 	protected var logView: TextView? = null
@@ -320,20 +316,8 @@ abstract class BasePocActivity : AppCompatActivity() {
 		renderLogBuffer()
 	}
 
-	protected fun loadLogTypeface(): Typeface {
-		return try {
-			Typeface.createFromAsset(assets, LOG_FONT_ASSET)
-		} catch (e: RuntimeException) {
-			Log.w(tag(), "Failed to load $LOG_FONT_ASSET, falling back to monospace", e)
-			Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-		}
-	}
-
 	protected fun getLogTypeface(): Typeface {
-		if (logTypeface == null) {
-			logTypeface = loadLogTypeface()
-		}
-		return logTypeface!!
+		return ViewUtils.getLogTypeface(this)
 	}
 
 	protected fun defaultLayoutParams(): LinearLayout.LayoutParams {

@@ -3,6 +3,7 @@ package ave.mujica.poc.utils
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.util.Log
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.view.Gravity
@@ -27,6 +28,21 @@ object ViewUtils {
     private const val INPUT_BACKGROUND_COLOR = 0xFFFBFDFF.toInt()
     private const val INPUT_TEXT_COLOR = 0xFF183046.toInt()
     private const val INPUT_HINT_COLOR = 0xFF73879D.toInt()
+
+    private const val LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf"
+    private var logTypeface: Typeface? = null
+
+    fun getLogTypeface(context: Context): Typeface {
+        logTypeface?.let { return it }
+        val loaded = try {
+            Typeface.createFromAsset(context.assets, LOG_FONT_ASSET)
+        } catch (e: RuntimeException) {
+            Log.w("ViewUtils", "Failed to load $LOG_FONT_ASSET, falling back to monospace", e)
+            Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        }
+        logTypeface = loaded
+        return loaded
+    }
 
     fun makeLinearLayout(context: Context, title: String): LinearLayout {
         val rootLayout = LinearLayout(context).apply {
@@ -158,7 +174,7 @@ object ViewUtils {
         }
     }
 
-    fun createInputField(context: Context, hint: String, value: String, typeface: Typeface): EditText {
+    fun createInputField(context: Context, hint: String, value: String, typeface: Typeface = getLogTypeface(context)): EditText {
         return EditText(context).apply {
             setHint(hint)
             setText(value)

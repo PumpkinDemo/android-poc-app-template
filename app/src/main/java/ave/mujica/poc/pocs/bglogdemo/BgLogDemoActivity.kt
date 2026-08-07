@@ -25,7 +25,7 @@ class BgLogDemoActivity : BasePocActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intervalInput = ViewUtils.createInputField(this, "bg interval ms", "1000", getLogTypeface())
+        intervalInput = ViewUtils.createInputField(this, "bg interval ms", "1000")
         addInputField(intervalInput)
 
         addActionButton("start foreground-service log") { requestBackgroundLog() }

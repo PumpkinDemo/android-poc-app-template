@@ -27,7 +27,7 @@ class DemoActivity : BasePocActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        input = ViewUtils.createInputField(this, "test input", "sakiko", getLogTypeface())
+        input = ViewUtils.createInputField(this, "test input", "sakiko")
 
         addInputField(input)
         
