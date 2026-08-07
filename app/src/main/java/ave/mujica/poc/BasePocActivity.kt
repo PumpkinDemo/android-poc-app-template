@@ -151,13 +151,38 @@ abstract class BasePocActivity : AppCompatActivity() {
 		val horizontalScrollView = HorizontalScrollView(this).apply {
 			isFillViewport = false
 			setBackgroundColor(LOG_CONSOLE_BACKGROUND_COLOR)
-			addView(logView)
+			addView(
+				logView,
+				FrameLayout.LayoutParams(
+					FrameLayout.LayoutParams.WRAP_CONTENT,
+					FrameLayout.LayoutParams.WRAP_CONTENT
+				)
+			)
 		}
 
 		val sv = ScrollView(this).apply {
 			isFillViewport = true
 			setBackgroundColor(LOG_CONSOLE_BACKGROUND_COLOR)
-			addView(horizontalScrollView)
+			addView(
+				horizontalScrollView,
+				FrameLayout.LayoutParams(
+					FrameLayout.LayoutParams.MATCH_PARENT,
+					FrameLayout.LayoutParams.WRAP_CONTENT
+				)
+			)
+		}
+		sv.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+			val logText = logView ?: return@addOnLayoutChangeListener
+			val minimumBottomPadding = ViewUtils.dpToPx(this, LOG_VERTICAL_PADDING_DP)
+			val bottomPadding = max(minimumBottomPadding, view.height - logText.lineHeight)
+			if (logText.paddingBottom != bottomPadding) {
+				logText.setPadding(
+					logText.paddingLeft,
+					logText.paddingTop,
+					logText.paddingRight,
+					bottomPadding
+				)
+			}
 		}
 
 		val handleBar = View(this)
