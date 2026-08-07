@@ -32,6 +32,10 @@ object ViewUtils {
     private const val LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf"
     private var logTypeface: Typeface? = null
 
+    fun applyPageBackground(view: View) {
+        view.setBackgroundColor(PAGE_BACKGROUND_COLOR)
+    }
+
     fun getLogTypeface(context: Context): Typeface {
         logTypeface?.let { return it }
         val loaded = try {
@@ -49,7 +53,7 @@ object ViewUtils {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.TOP
             fitsSystemWindows = true
-            setBackgroundColor(PAGE_BACKGROUND_COLOR)
+            applyPageBackground(this)
             val paddingX = dpToPx(context, 20)
             val paddingY = dpToPx(context, 16)
             setPadding(paddingX, paddingY, paddingX, paddingY)

@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
 
         val scrollView = ScrollView(this).apply {
             clipToPadding = false
+            ViewUtils.applyPageBackground(this)
             setPadding(0, ViewUtils.dpToPx(this@MainActivity, 8), 0, ViewUtils.dpToPx(this@MainActivity, 16))
             scrollBarStyle = ScrollView.SCROLLBARS_OUTSIDE_OVERLAY
         }
