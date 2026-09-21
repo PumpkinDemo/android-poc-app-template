@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -28,12 +29,32 @@ public class ViewHelper {
     private static final int INPUT_TEXT_COLOR = Color.parseColor("#183046");
     private static final int INPUT_HINT_COLOR = Color.parseColor("#73879D");
 
+    private static final String LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf";
+    private static Typeface logTypeface;
+
+    public static void applyPageBackground(View view) {
+        view.setBackgroundColor(PAGE_BACKGROUND_COLOR);
+    }
+
+    public static Typeface getLogTypeface(Context context) {
+        if (logTypeface != null) {
+            return logTypeface;
+        }
+        try {
+            logTypeface = Typeface.createFromAsset(context.getAssets(), LOG_FONT_ASSET);
+        } catch (RuntimeException e) {
+            Log.w("ViewUtils", "Failed to load " + LOG_FONT_ASSET + ", falling back to monospace", e);
+            logTypeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
+        }
+        return logTypeface;
+    }
+
     public static LinearLayout makeLinearLayout(Context context, String title) {
         var rootLayout = new LinearLayout(context);
         rootLayout.setOrientation(LinearLayout.VERTICAL);
         rootLayout.setGravity(Gravity.TOP);
         rootLayout.setFitsSystemWindows(true);
-        rootLayout.setBackgroundColor(PAGE_BACKGROUND_COLOR);
+        applyPageBackground(rootLayout);
         int paddingX = dpToPx(context, 20);
         int paddingY = dpToPx(context, 16);
         rootLayout.setPadding(paddingX, paddingY, paddingX, paddingY);
@@ -108,7 +129,7 @@ public class ViewHelper {
         button.setTextSize(14f);
         button.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         button.setGravity(Gravity.CENTER);
-        button.setMinHeight(dpToPx(context, 46));
+        button.setMinimumHeight(dpToPx(context, 46));
         button.setPadding(
                 dpToPx(context, 14),
                 dpToPx(context, 10),
@@ -149,6 +170,10 @@ public class ViewHelper {
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
         return button;
+    }
+
+    public static EditText createInputField(Context context, String hint, String value) {
+        return createInputField(context, hint, value, getLogTypeface(context));
     }
 
     public static EditText createInputField(Context context, String hint, String value, Typeface typeface) {
@@ -258,6 +283,7 @@ public class ViewHelper {
 
     public static int dpToPx(Context context, int dp) {
         float density = context.getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+        // Match kotlin.math.round: half-integer values round to the nearest even integer.
+        return (int) Math.rint(dp * density);
     }
 }

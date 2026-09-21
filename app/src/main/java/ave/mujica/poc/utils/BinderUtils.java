@@ -1,4 +1,4 @@
-package ave.mujica.poc;
+package ave.mujica.poc.utils;
 
 import android.os.Bundle;
 import android.os.IBinder;
@@ -9,24 +9,24 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Date;
-import java.util.Locale;
-import java.text.SimpleDateFormat;
 
 
-public class Utils {
-    private static final String TAG = "Utils";
+public final class BinderUtils {
+    private static final String TAG = "BinderUtils";
     private static final int BINDER_EXTENSION_TRANSACTION = 0x5F455854;
 
-    public static String getCurrentTime() {
-        return new SimpleDateFormat("HH:mm:ss:SSS", Locale.US).format(new Date());
+    private BinderUtils() {
     }
 
     public static IBinder getServiceBinder(String name) {
         try {
             Class<?> smClass = Class.forName("android.os.ServiceManager");
             var getService = smClass.getDeclaredMethod("getService", String.class);
-            return (IBinder) getService.invoke(null, name);
+            IBinder binder = (IBinder) getService.invoke(null, name);
+            if (binder == null) {
+                throw new NullPointerException("null cannot be cast to non-null type android.os.IBinder");
+            }
+            return binder;
         } catch (Exception e) {
             Log.d(TAG, "getServiceBinder(" + name + ") failed: " + e.getMessage());
             return null;

@@ -18,12 +18,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class BasePocActivity extends AppCompatActivity {
-
-    private static final String LOG_FONT_ASSET = "fonts/SpaceMono-Regular.ttf";
 
     private static final int CONTENT_HORIZONTAL_PADDING_DP = 24;
     private static final int CONTENT_VERTICAL_PADDING_DP = 16;
@@ -55,7 +52,6 @@ public abstract class BasePocActivity extends AppCompatActivity {
     protected final StringBuilder logBuffer = new StringBuilder();
     protected LinearLayout rootLayout;
 
-    private static Typeface logTypeface;
     private TextView logMetaView;
     private View inputSectionCard;
     private View actionSectionCard;
@@ -76,7 +72,6 @@ public abstract class BasePocActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
 
         logHeaderTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
 
@@ -139,12 +134,33 @@ public abstract class BasePocActivity extends AppCompatActivity {
         HorizontalScrollView horizontalScrollView = new HorizontalScrollView(this);
         horizontalScrollView.setFillViewport(false);
         horizontalScrollView.setBackgroundColor(LOG_CONSOLE_BACKGROUND_COLOR);
-        horizontalScrollView.addView(logView);
+        horizontalScrollView.addView(logView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        ));
 
         ScrollView sv = new ScrollView(this);
         sv.setFillViewport(true);
         sv.setBackgroundColor(LOG_CONSOLE_BACKGROUND_COLOR);
-        sv.addView(horizontalScrollView);
+        sv.addView(horizontalScrollView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        ));
+        sv.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (logView == null) {
+                return;
+            }
+            int minimumBottomPadding = ViewHelper.dpToPx(this, LOG_VERTICAL_PADDING_DP);
+            int bottomPadding = Math.max(minimumBottomPadding, view.getHeight() - logView.getLineHeight());
+            if (logView.getPaddingBottom() != bottomPadding) {
+                logView.setPadding(
+                        logView.getPaddingLeft(),
+                        logView.getPaddingTop(),
+                        logView.getPaddingRight(),
+                        bottomPadding
+                );
+            }
+        });
 
         View handleBar = new View(this);
         GradientDrawable handleDrawable = new GradientDrawable();
@@ -279,20 +295,8 @@ public abstract class BasePocActivity extends AppCompatActivity {
         renderLogBuffer();
     }
 
-    protected Typeface loadLogTypeface() {
-        try {
-            return Typeface.createFromAsset(getAssets(), LOG_FONT_ASSET);
-        } catch (RuntimeException e) {
-            Log.w(getTag(), "Failed to load " + LOG_FONT_ASSET + ", falling back to monospace", e);
-            return Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL);
-        }
-    }
-
     protected Typeface getLogTypeface() {
-        if (logTypeface == null) {
-            logTypeface = loadLogTypeface();
-        }
-        return logTypeface;
+        return ViewHelper.getLogTypeface(this);
     }
 
     protected LinearLayout.LayoutParams defaultLayoutParams() {
@@ -310,6 +314,7 @@ public abstract class BasePocActivity extends AppCompatActivity {
         }
         ensureActionSection();
         actionSectionContent.addView(ViewHelper.makeButton(this, label, onClick), defaultLayoutParams());
+        rootLayout.invalidate();
     }
 
     protected void addInputField(View view) {

@@ -3,6 +3,7 @@ package ave.mujica.poc.pocs.bglogdemo;
 import ave.mujica.poc.*;
 import ave.mujica.poc.bglog.BackgroundLogController;
 import ave.mujica.poc.bglog.BackgroundLogTaskRegistry;
+import ave.mujica.poc.utils.StringUtils;
 import android.content.pm.PackageManager;
 import android.os.*;
 import android.widget.EditText;
@@ -11,20 +12,23 @@ import android.Manifest;
 public class BgLogDemoActivity extends BasePocActivity {
     private static final String TAG = "BgLogDemoActivity";
     private static final int REQUEST_POST_NOTIFICATIONS = 1001;
+    private static final long NO_FGS_INTERVAL_MS = 1000L;
 
     private EditText intervalInput;
-    private boolean pendingStartBackgroudLogger = false;
+    private boolean pendingStartBackgroundLogger = false;
+    private boolean pendingStartNoFgsLogThread = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        intervalInput = ViewHelper.createInputField(this, "bg interval ms", "1000", getLogTypeface());
+        intervalInput = ViewHelper.createInputField(this, "bg interval ms", "1000");
         addInputField(intervalInput);
 
-        // addActionButton("test", v -> poc());
-        addActionButton("start background log", v -> requestBackgroundLog());
-        addActionButton("stop background log", v -> stopBackgroundLogger());
+        addActionButton("start foreground-service log", v -> requestBackgroundLog());
+        addActionButton("stop foreground-service log", v -> stopBackgroundLogger());
+        addActionButton("start no-FGS log thread", v -> requestNonForegroundLogThread());
+        addActionButton("stop no-FGS log thread", v -> stopNonForegroundLogThread());
 
         BackgroundLogTaskRegistry.register(new DemoBgLogTask());
     }
@@ -35,9 +39,8 @@ public class BgLogDemoActivity extends BasePocActivity {
     }
 
     private void requestBackgroundLog() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU 
-        && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            pendingStartBackgroudLogger = true;
+        if (!hasPostNotificationsPermission()) {
+            pendingStartBackgroundLogger = true;
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_POST_NOTIFICATIONS);
             log(TAG, "Requesting POST_NOTIFICATIONS for the background logger foreground service.");
             return;
@@ -47,30 +50,59 @@ public class BgLogDemoActivity extends BasePocActivity {
  
 
     private void startBackgroundLogger() {
-        log(TAG, "Background logger starts.");
-
-        long intervalMs = 1000L;
-        do {
-            String raw = intervalInput.getText().toString().trim();
-            if (raw.isEmpty()) {
-                break;
-            }
-            try {
-                intervalMs = Math.max(1000L, Long.parseLong(raw));
-            } catch (NumberFormatException e) {
-                log(TAG, "Invalid interval, falling back to 1000ms: " + raw);
-                intervalMs = 1000L;
-            }
-        } while (false);
-
+        long intervalMs = readIntervalMs();
+        log(TAG, "Foreground-service background logger starts, interval=" + intervalMs + "ms.");
         BackgroundLogController.start(this, DemoBgLogTask.TASK_ID, intervalMs);
     }
 
     
     private void stopBackgroundLogger() {
-        pendingStartBackgroudLogger = false;
+        pendingStartBackgroundLogger = false;
         BackgroundLogController.stop(this);
-        log(TAG, "Background logger stopped.");
+        log(TAG, "Foreground-service background logger stopped.");
+    }
+
+    private void requestNonForegroundLogThread() {
+        if (!hasPostNotificationsPermission()) {
+            pendingStartNoFgsLogThread = true;
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_POST_NOTIFICATIONS);
+            log(TAG, "Requesting POST_NOTIFICATIONS for the no-FGS log thread notification.");
+            return;
+        }
+        startNonForegroundLogThread();
+    }
+
+    private void startNonForegroundLogThread() {
+        long intervalMs = NO_FGS_INTERVAL_MS;
+        if (NonForegroundBgLogThread.start(this, intervalMs)) {
+            log(TAG, "No-FGS log thread starts. It updates a current-time notification every "
+                    + intervalMs + "ms. Watch logcat tag DemoBgLogNoFgs.");
+            return;
+        }
+        log(TAG, "No-FGS log thread is already running.");
+    }
+
+    private void stopNonForegroundLogThread() {
+        NonForegroundBgLogThread.stop();
+        log(TAG, "No-FGS log thread stop requested.");
+    }
+
+    private long readIntervalMs() {
+        String raw = StringUtils.trimInput(intervalInput.getText().toString());
+        if (raw.isEmpty()) {
+            return 1000L;
+        }
+        try {
+            return Math.max(1000L, Long.parseLong(raw));
+        } catch (NumberFormatException e) {
+            log(TAG, "Invalid interval, falling back to 1000ms: " + raw);
+            return 1000L;
+        }
+    }
+
+    private boolean hasPostNotificationsPermission() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+                || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -83,13 +115,20 @@ public class BgLogDemoActivity extends BasePocActivity {
         log(TAG, "POST_NOTIFICATIONS permission result: " + (grantResults.length > 0 ? grantResults[0] : "none"));
         
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-        if (pendingStartBackgroudLogger && granted) {
-            pendingStartBackgroudLogger = false;
+        if (pendingStartBackgroundLogger && granted) {
+            pendingStartBackgroundLogger = false;
             startBackgroundLogger();
             return;
         }
 
-        pendingStartBackgroudLogger = false;
-        log(TAG, "POST_NOTIFICATIONS denied. Foreground notification visibility may be blocked, so the background logger was not started.");
+        if (pendingStartNoFgsLogThread && granted) {
+            pendingStartNoFgsLogThread = false;
+            startNonForegroundLogThread();
+            return;
+        }
+
+        pendingStartBackgroundLogger = false;
+        pendingStartNoFgsLogThread = false;
+        log(TAG, "POST_NOTIFICATIONS denied. Notification-based background log tests were not started.");
     }
 }

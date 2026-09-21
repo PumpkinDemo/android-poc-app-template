@@ -4,6 +4,8 @@ package ave.mujica.poc.pocs.demo;
 import android.os.*;
 import android.widget.EditText;
 import ave.mujica.poc.*;
+import ave.mujica.poc.utils.DateUtils;
+import ave.mujica.poc.utils.StringUtils;
 
 public class DemoActivity extends BasePocActivity {
     private static final String TAG = "DemoActivity";
@@ -14,7 +16,7 @@ public class DemoActivity extends BasePocActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        input = ViewHelper.createInputField(this, "test input", "sakiko", getLogTypeface());
+        input = ViewHelper.createInputField(this, "test input", "sakiko");
 
         addInputField(input);
         
@@ -30,7 +32,7 @@ public class DemoActivity extends BasePocActivity {
     }
 
     public void poc() {
-        String text = input.getText().toString().trim();
+        String text = StringUtils.trimInput(input.getText().toString());
         if (text.isEmpty()) {
             log(TAG, "Input is empty.");
             return; 
@@ -40,19 +42,15 @@ public class DemoActivity extends BasePocActivity {
     }
 
     public void logCurrentTime() {
-        log(TAG, "Current time: " + Utils.getCurrentTime());
+        log(TAG, "Current time: " + DateUtils.getCurrentTime());
     }
 
     public void readAssetFile() {
         String content = AssetUtils.readText(this, "hello.txt");
-        if (content != null) {
-            log(TAG, "--- Asset content start ---\n" + content + "\n--- Asset content end ---");
-        } else {
-            log(TAG, "Failed to read asset file.");
-        }
+        log(TAG, "--- Asset content start ---\n" + content + "\n--- Asset content end ---");
     }
 
     public void sendNotification() {
-        NotificationHelper.checkAndSend(this, "Hello", "Current time: " + Utils.getCurrentTime());
+        NotificationHelper.checkAndSend(this, "Hello", "Current time: " + DateUtils.getCurrentTime());
     }
 }

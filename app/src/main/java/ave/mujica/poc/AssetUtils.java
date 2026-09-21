@@ -2,29 +2,27 @@ package ave.mujica.poc;
 
 import android.content.Context;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
 public class AssetUtils {
 
     public static String readText(Context context, String fileName) {
-        try (InputStream is = context.getAssets().open(fileName);
-             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-
-            byte[] buffer = new byte[1024];
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                context.getAssets().open(fileName), StandardCharsets.UTF_8))) {
+            StringBuilder content = new StringBuilder();
+            char[] buffer = new char[8192];
             int len;
-
-            while ((len = is.read(buffer)) != -1) {
-                bos.write(buffer, 0, len);
+            while ((len = reader.read(buffer)) != -1) {
+                content.append(buffer, 0, len);
             }
-
-            return bos.toString(StandardCharsets.UTF_8.name());
+            return content.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            // Java callers receive the read failure without a checked-exception requirement.
+            throw new UncheckedIOException(e);
         }
-
-        return null;
     }
 }

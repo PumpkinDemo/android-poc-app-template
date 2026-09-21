@@ -8,7 +8,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import ave.mujica.poc.pocs.demo.DemoActivity;
@@ -21,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
 
         var root = ViewHelper.makeLinearLayout(this, "Main");
         root.setPadding(
@@ -33,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setClipToPadding(false);
+        ViewHelper.applyPageBackground(scrollView);
         scrollView.setPadding(0, ViewHelper.dpToPx(this, 8), 0, ViewHelper.dpToPx(this, 16));
         scrollView.setScrollBarStyle(ScrollView.SCROLLBARS_OUTSIDE_OVERLAY);
 
