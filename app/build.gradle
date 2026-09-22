@@ -43,7 +43,7 @@ dependencies {
 }
 
 
-apply plugin: 'eclipse'
-apply from: rootProject.file('gradle/android-eclipse.gradle')
+// apply plugin: 'eclipse'
+// apply from: rootProject.file('gradle/android-eclipse.gradle')
 
-configureAndroidEclipseClasspath(project)
+//  configureAndroidEclipseClasspath(project)
