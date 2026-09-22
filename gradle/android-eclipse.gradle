@@ -27,7 +27,11 @@ ext.resolveAndroidSdkDir = { Project targetProject ->
 ext.resolveCompileSdkName = { Project targetProject ->
     try {
         def compileSdk = targetProject.android.compileSdk
-        return compileSdk instanceof Integer ? "android-${compileSdk}" : compileSdk
+        if (compileSdk instanceof Integer) {
+            def minor = targetProject.android.hasProperty('compileSdkMinor') ? targetProject.android.compileSdkMinor : null
+            return minor ? "android-${compileSdk}.${minor}" : "android-${compileSdk}"
+        }
+        return compileSdk
     } catch (Exception ignored) {
         try {
             return targetProject.android.compileSdkVersion
@@ -56,13 +60,7 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
         def sdkDir = resolveAndroidSdkDir(targetProject)
         def compileSdk = resolveCompileSdkName(targetProject)
         def classpathConfig = resolveClasspathConfiguration(targetProject)
-        def ownRClassJar = new File(targetProject.buildDir, 'intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar')
-        def externalArtifacts = classpathConfig == null ? [] : classpathConfig.incoming.artifactView {
-            lenient = true
-            componentFilter { identifier ->
-                identifier instanceof ModuleComponentIdentifier
-            }
-        }.artifacts.artifactFiles.files
+        def ownRClassJar = new File(targetProject.buildDir, 'intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar')
         def projectDependencies = classpathConfig == null ? [] : classpathConfig.allDependencies
             .withType(ProjectDependency)
             .collect { dependency -> dependency.path.replace(':', '/') }
@@ -77,9 +75,19 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
         }
 
         targetProject.eclipse {
+            jdt {
+                sourceCompatibility = targetProject.android.compileOptions.sourceCompatibility
+                targetCompatibility = targetProject.android.compileOptions.targetCompatibility
+            }
             classpath {
                 file {
                     whenMerged { cp ->
+                        def externalArtifacts = classpathConfig == null ? [] : classpathConfig.incoming.artifactView {
+                            lenient = true
+                            componentFilter { identifier ->
+                                identifier instanceof ModuleComponentIdentifier
+                            }
+                        }.artifacts.artifactFiles.files
                         def src = new SourceFolder('src/main/java', 'bin/main')
                         if (!cp.entries.any {
                             it instanceof SourceFolder && it.path == 'src/main/java'
@@ -108,7 +116,7 @@ ext.configureAndroidEclipseClasspath = { Project targetProject ->
                             targetProject.logger.warn("android.jar not found at: ${androidJarFile}")
                         }
 
-                        def ownRClassJarSuffix = 'build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar'
+                        def ownRClassJarSuffix = 'build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar'
                         if (ownRClassJar.exists() && !cp.entries.any {
                             it instanceof Library && it.path?.replace('\\', '/')?.endsWith(ownRClassJarSuffix)
                         }) {
